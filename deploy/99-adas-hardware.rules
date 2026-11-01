@@ -1,0 +1,8 @@
+# USB serial ESP32 / CP210x / CH340 / Espressif / FTDI — ADAS radar gateway
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", MODE="0660", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", MODE="0660", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="303a", MODE="0660", GROUP="dialout"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", MODE="0660", GROUP="dialout"
+
+# Camera V4L2
+KERNEL=="video[0-9]*", GROUP="video", MODE="0660"

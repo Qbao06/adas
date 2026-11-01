@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ADAS Web Demo
+Comment=UI preview only — no real hardware
+Exec=@PROJECT_DIR@/start_web_demo.sh
+Terminal=true
+StartupNotify=true
+Categories=Utility;

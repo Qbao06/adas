@@ -1,0 +1,15 @@
+[Unit]
+Description=ADAS LiDAR Camera
+After=network-online.target graphical.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@PROJECT_DIR@
+ExecStart=@PROJECT_DIR@/start_jetson.sh --headless
+Restart=on-failure
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

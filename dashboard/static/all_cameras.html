@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ADAS — Kiểm tra toàn bộ camera</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #090b0f; color: #e9eef5;
+           font-family: system-ui, sans-serif; }
+    header { display: flex; align-items: center; justify-content: space-between;
+             padding: 14px 20px; border-bottom: 1px solid #28313b; }
+    h1 { margin: 0; font-size: 18px; } #state { color: #85e89d; font-size: 13px; }
+    #full { border: 1px solid #4b5a6a; border-radius: 5px; background: #1b2632; color: #e9eef5; padding: 7px 10px; cursor: pointer; }
+    #grid { display: grid; height: calc(100vh - 58px); grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 8px; padding: 8px; }
+    .camera { position: relative; min-height: 0; background: #12171e; border: 1px solid #2a3541; overflow: hidden; }
+    img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .label { position: absolute; top: 10px; left: 10px; padding: 5px 8px; background: #101820dd;
+             color: #7ee787; font: 600 13px ui-monospace, monospace; }
+    .offline { display: grid; place-items: center; min-height: 250px; color: #9ba7b4; }
+  </style>
+</head>
+<body>
+  <header><h1>KIỂM TRA TOÀN BỘ CAMERA USB</h1><span id="state">Đang kết nối…</span><button id="full">TOÀN MÀN HÌNH</button></header>
+  <main id="grid"></main>
+  <script>
+    const grid = document.getElementById('grid');
+    const state = document.getElementById('state');
+    const tiles = new Map();
+    function makeTile(id, source) {
+      const tile = document.createElement('section');
+      tile.className = 'camera';
+      const label = document.createElement('div'); label.className = 'label';
+      label.textContent = `${id.toUpperCase()} · ${source}`;
+      const image = new Image(); image.alt = `Camera ${id}`;
+      tile.append(label, image); grid.append(tile);
+      return { tile, image, loading: false };
+    }
+    function updateImage(id) {
+      const item = tiles.get(id);
+      if (!item || item.loading) return;
+      item.loading = true;
+      const next = new Image();
+      next.onload = () => { item.image.src = next.src; item.loading = false; };
+      next.onerror = () => { item.loading = false; };
+      next.src = `/api/camera/${encodeURIComponent(id)}.jpg?t=${Date.now()}`;
+    }
+    async function update() {
+      try {
+        const status = await fetch('/api/status', {cache: 'no-store'}).then(r => r.json());
+        const snapshot = status.snapshot || {};
+        const sources = snapshot.camera_sources || {};
+        const available = snapshot.cameras_available || [];
+        // Keep a fixed four-camera layout. A missing device is explicit rather
+        // than silently shrinking the test screen and hiding a failed camera.
+        ['front', 'left', 'right', 'rear'].forEach((id) => {
+          const source = sources[id] || 'CHƯA NHẬN THIẾT BỊ';
+          if (!tiles.has(id)) tiles.set(id, makeTile(id, source));
+          if (available.includes(id)) updateImage(id);
+        });
+        state.textContent = available.length ? `Đang hiển thị ${available.length}/4 camera` : 'Chưa có tín hiệu camera';
+        state.style.color = available.length ? '#85e89d' : '#ff7b72';
+      } catch (_) { state.textContent = 'Không kết nối được dashboard'; state.style.color = '#ff7b72'; }
+    }
+    document.getElementById('full').onclick = () => document.documentElement.requestFullscreen?.();
+    update(); setInterval(update, 250); setInterval(() => tiles.forEach((_, id) => updateImage(id)), 100);
+  </script>
+</body>
+</html>

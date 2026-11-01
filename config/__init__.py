@@ -1,0 +1,61 @@
+from .loader import coerce_config, load_config, resolve_path
+from .validation import ConfigError, validate_config
+from .side_modules import (
+    MODULE_IDS,
+    apply_side_modules,
+    default_side_modules,
+    inspect_module_devices,
+    modules_from_config,
+    save_side_modules,
+    validate_side_modules,
+)
+from .radar_gateway import (
+    DEFAULT_USB_BAUDRATES,
+    LEGACY_CAMERA_IDS,
+    LD2410_MAX_DETECTION_M,
+    MAX_LINE_BYTES,
+    PROTOCOL_VERSIONS,
+    RADAR_IDS,
+    apply_radar_gateway,
+    default_radar_gateway,
+    gateway_from_config,
+    is_allowed_device,
+    is_com_port,
+    list_serial_devices,
+    migrate_legacy_config,
+    radar_gateway_from_config,
+    sanitize_device_path,
+    save_radar_gateway,
+    validate_radar_gateway,
+)
+from .hardware import (
+    CAMERA_SLOT_IDS,
+    CAMERA_SLOTS,
+    apply_hardware,
+    hardware_from_config,
+    inspect_camera_device,
+    inspect_lidar_source,
+    inspect_serial_device,
+    is_allowed_camera_source,
+    list_hardware_devices,
+    normalize_camera_source,
+    save_hardware,
+    validate_hardware,
+)
+
+__all__ = [
+    "ConfigError", "MODULE_IDS", "apply_side_modules", "coerce_config",
+    "default_side_modules", "inspect_module_devices", "load_config",
+    "modules_from_config", "resolve_path", "save_side_modules",
+    "validate_config", "validate_side_modules",
+    "DEFAULT_USB_BAUDRATES", "LEGACY_CAMERA_IDS", "LD2410_MAX_DETECTION_M",
+    "MAX_LINE_BYTES", "PROTOCOL_VERSIONS", "RADAR_IDS",
+    "apply_radar_gateway", "default_radar_gateway", "gateway_from_config",
+    "is_allowed_device", "is_com_port", "list_serial_devices", "migrate_legacy_config",
+    "radar_gateway_from_config", "sanitize_device_path", "save_radar_gateway",
+    "validate_radar_gateway",
+    "CAMERA_SLOT_IDS", "CAMERA_SLOTS", "apply_hardware", "hardware_from_config",
+    "inspect_camera_device", "inspect_lidar_source", "inspect_serial_device",
+    "is_allowed_camera_source", "list_hardware_devices", "normalize_camera_source",
+    "save_hardware", "validate_hardware",
+]

@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADAS PRO // COCKPIT DASHBOARD</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Demo banner (only visible in demo mode) -->
+  <div id="demoBanner" class="demo-banner" style="display: none;" role="banner" aria-label="Demo notice">
+    <div class="demo-banner-inner">
+      <span class="demo-tag">DEMO PREVIEW</span>
+      <span class="demo-text">DEMO UI — NOT LIVE · MÔ PHỎNG COCKPIT TRONG RAM · KHÔNG KẾT NỐI PHẦN CỨNG XE</span>
+    </div>
+  </div>
+
+  <div class="cockpit-app">
+    <!-- Top Cockpit Header -->
+    <header class="cockpit-header">
+      <div class="header-brand">
+        <div class="brand-emblem" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18">
+            <polygon points="12,2 22,20 2,20" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="12" cy="14" r="3" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">ADAS PRO <span class="brand-badge">COCKPIT</span></div>
+          <div id="headerSubtitle" class="brand-sub">HỆ THỐNG GIÁM SÁT VÀ CẢNH BÁO VA CHẠM</div>
+        </div>
+      </div>
+
+      <!-- Center Tabs Navigation -->
+      <nav class="cockpit-nav" aria-label="Điều hướng chính">
+        <button id="tabBtnCockpit" class="nav-tab active" data-tab="cockpit">
+          <span class="tab-dot"></span> COCKPIT CHÍNH
+        </button>
+        <button id="tabBtnCameras" class="nav-tab" data-tab="cameras">
+          CAMERA 360°
+        </button>
+        <button id="tabBtnDiagnostics" class="nav-tab" data-tab="diagnostics">
+          CHẨN ĐOÁN & PHẦN CỨNG
+          <span id="diagBadge" class="nav-badge" style="display: none;">!</span>
+        </button>
+        <button id="tabBtnHardware" class="nav-tab" data-tab="hardware">CẤU HÌNH PHẦN CỨNG</button>
+        <button id="tabBtnConfig" class="nav-tab" data-tab="config">CẤU HÌNH MODULE</button>
+        <button id="tabBtnRadar" class="nav-tab" data-tab="radar">RADAR GATEWAY</button>
+      </nav>
+
+      <!-- Right Telemetry & Actions -->
+      <div class="header-actions">
+        <div id="threatBadge" class="threat-badge threat-safe" role="status">
+          <span class="threat-dot"></span>
+          <span id="threatText">AN TOÀN</span>
+        </div>
+        <div id="modePill" class="status-pill status-live" role="status">
+          <span class="status-dot"></span>
+          <span id="modePillText">LIVE HARDWARE</span>
+        </div>
+        <div class="system-time">
+          <span id="clock" class="clock-val">--:--:--</span>
+        </div>
+        <button id="fullscreenBtn" class="btn-icon" aria-label="Toàn màn hình" title="Toàn màn hình">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Demo Actions Toolbar (Visible only in demo mode) -->
+    <div id="demoControls" class="demo-controls-bar" style="display: none;">
+      <span class="demo-ctrl-label">MÔ PHỎNG:</span>
+      <div class="demo-btn-group">
+        <button class="demo-btn active" data-action="normal">Bình thường</button>
+        <button class="demo-btn" data-action="pedestrian">Người đi bộ</button>
+        <button class="demo-btn" data-action="danger">Nguy cơ va chạm</button>
+        <button class="demo-btn" data-action="lost_cam">Mất Cam</button>
+        <button class="demo-btn" data-action="lost_lidar">Mất LiDAR</button>
+        <button class="demo-btn" data-action="lost_ai">Mất AI</button>
+        <button class="demo-btn" data-action="turn_signal">Xi-nhan</button>
+        <button class="demo-btn" data-action="reverse">Số lùi (R)</button>
+        <button class="demo-btn" data-action="pause_resume">Tạm dừng</button>
+        <button class="demo-btn btn-dim" data-action="reset">Đặt lại</button>
+      </div>
+    </div>
+
+    <!-- Main Viewport Body -->
+    <main class="cockpit-body">
+      <!-- ================================================================= -->
+      <!-- TAB 1: COCKPIT OVERVIEW (GIAO DIỆN CHÍNH LÁI XE) -->
+      <!-- ================================================================= -->
+      <section id="viewCockpit" class="cockpit-tab-view active">
+        <div class="overview-grid">
+          <!-- Distance Warning Banner -->
+          <div id="distanceBanner" class="distance-banner banner-safe" role="alert">
+            <div class="banner-left">
+              <span id="bannerIcon" class="banner-icon">●</span>
+              <div class="banner-info">
+                <strong id="bannerTitle" class="banner-title">KHOẢNG CÁCH AN TOÀN</strong>
+                <span id="bannerSub" class="banner-sub">Hệ thống đang theo dõi vật cản phía trước</span>
+              </div>
+            </div>
+            <div class="banner-right">
+              <span class="banner-dist-label">KHOẢNG CÁCH</span>
+              <span id="bannerDistVal" class="banner-dist-val">--.- m</span>
+            </div>
+          </div>
+
+          <!-- Primary Camera Viewport -->
+          <div class="main-viewport-container">
+            <div class="main-viewport">
+              <canvas id="primaryCanvas" width="1280" height="720"></canvas>
+              
+              <!-- Reticles & HUD Overlays -->
+              <div class="reticle-corner tl"></div>
+              <div class="reticle-corner tr"></div>
+              <div class="reticle-corner bl"></div>
+              <div class="reticle-corner br"></div>
+              <div class="hud-crosshair"></div>
+
+              <div class="viewport-hud-top">
+                <div class="hud-tag-group">
+                  <span id="activeCamBadge" class="cam-badge">CAMERA TRƯỚC</span>
+                  <span id="activeCamZone" class="cam-zone-tag">FOV GÓC RỘNG</span>
+                </div>
+                <div class="hud-stats">
+                  <span>FPS: <strong id="valFps">30</strong></span>
+                  <span>ĐỘ TRỄ: <strong id="valLatency">4.2ms</strong></span>
+                </div>
+              </div>
+
+              <!-- Camera Lost Warning Overlay -->
+              <div id="camLostOverlay" class="cam-lost-overlay" style="display: none;">
+                <div class="lost-icon">⚠</div>
+                <strong>MẤT TÍN HIỆU CAMERA</strong>
+                <span>Cảm biến hình ảnh không gửi dữ liệu</span>
+              </div>
+            </div>
+
+            <!-- Bottom Camera Thumbnails Strip -->
+            <div class="camera-strip" role="region" aria-label="Góc nhìn camera">
+              <button class="cam-thumb active" data-cam="front">
+                <span class="thumb-lbl">TRƯỚC</span>
+                <span class="thumb-status">PRIMARY</span>
+              </button>
+              <button class="cam-thumb" data-cam="left">
+                <span class="thumb-lbl">TRÁI</span>
+                <span class="thumb-status">SIDE L</span>
+              </button>
+              <button class="cam-thumb" data-cam="right">
+                <span class="thumb-lbl">PHẢI</span>
+                <span class="thumb-status">SIDE R</span>
+              </button>
+              <button class="cam-thumb" data-cam="rear">
+                <span class="thumb-lbl">SAU</span>
+                <span id="rearThumbTag" class="thumb-status">REVERSE</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Telemetry Sidebar -->
+          <aside class="cockpit-sidebar">
+            <!-- Mini BEV LiDAR Map -->
+            <div class="side-card">
+              <div class="card-header">
+                <span class="card-title">BẢN ĐỒ CẢM BIẾN LIDAR (BEV)</span>
+                <span id="lidarStatusBadge" class="card-status-ok">10 Hz</span>
+              </div>
+              <div class="bev-map-container">
+                <canvas id="bevCanvas" width="340" height="220"></canvas>
+                <div class="bev-scale">20m</div>
+              </div>
+            </div>
+
+            <!-- Vehicle State Widget -->
+            <div class="side-card">
+              <div class="card-header">
+                <span class="card-title">TRẠNG THÁI XE</span>
+                <span class="card-sub">CABIN TELEMETRY</span>
+              </div>
+              <div class="vehicle-state-row">
+                <!-- Gear selector -->
+                <div class="gear-selector" aria-label="Hộp số">
+                  <span id="gearP" class="gear-badge">P</span>
+                  <span id="gearR" class="gear-badge">R</span>
+                  <span id="gearN" class="gear-badge">N</span>
+                  <span id="gearD" class="gear-badge active">D</span>
+                </div>
+
+                <!-- Turn Signals -->
+                <div class="turn-signals">
+                  <span id="signalLeft" class="turn-arrow">◄</span>
+                  <span class="turn-label">XI-NHAN</span>
+                  <span id="signalRight" class="turn-arrow">►</span>
+                </div>
+              </div>
+              <div class="blindspot-row" aria-label="Radar điểm mù">
+                <div id="radarLeftState" class="blindspot-indicator"><span>RADAR TRÁI</span><strong>--</strong></div>
+                <div id="radarRightState" class="blindspot-indicator"><span>RADAR PHẢI</span><strong>--</strong></div>
+              </div>
+            </div>
+
+            <!-- Subsystems Health -->
+            <div class="side-card">
+              <div class="card-header">
+                <span class="card-title">TÌNH TRẠNG PHÂN HỆ</span>
+              </div>
+              <div class="subsystems-grid">
+                <div class="subsys-item">
+                  <span class="subsys-name">Camera</span>
+                  <span id="healthCam" class="subsys-val val-ok">OK</span>
+                </div>
+                <div class="subsys-item">
+                  <span class="subsys-name">LiDAR</span>
+                  <span id="healthLidar" class="subsys-val val-ok">OK</span>
+                </div>
+                <div class="subsys-item">
+                  <span class="subsys-name">AI Engine</span>
+                  <span id="healthAi" class="subsys-val val-ok">OK</span>
+                </div>
+                <div class="subsys-item">
+                  <span class="subsys-name">Fusion</span>
+                  <span id="healthFusion" class="subsys-val val-ok">OK</span>
+                </div>
+                <div class="subsys-item">
+                  <span class="subsys-name">Calibration</span>
+                  <span id="healthCalib" class="subsys-val val-ok">OK</span>
+                </div>
+                <div class="subsys-item">
+                  <span class="subsys-name">System</span>
+                  <span id="healthSys" class="subsys-val val-ok">OK</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Detected Objects List -->
+            <div class="side-card side-card-flex">
+              <div class="card-header">
+                <span class="card-title">VẬT THỂ PHÁT HIỆN</span>
+                <span id="detectedCount" class="card-count">0 mục</span>
+              </div>
+              <div id="objectsList" class="objects-list-container">
+                <!-- Injected dynamically -->
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 2: MULTI-CAMERA 360 MATRIX -->
+      <!-- ================================================================= -->
+      <section id="viewCameras" class="cockpit-tab-view">
+        <div class="multicam-grid">
+          <div class="multicam-cell" data-cam="front">
+            <div class="multicam-tag">CAMERA TRƯỚC (FRONT)</div>
+            <canvas id="multiCamFront" class="multicam-canvas" width="640" height="360"></canvas>
+          </div>
+          <div class="multicam-cell" data-cam="left">
+            <div class="multicam-tag">CAMERA TRÁI (SIDE LEFT)</div>
+            <canvas id="multiCamLeft" class="multicam-canvas" width="640" height="360"></canvas>
+          </div>
+          <div class="multicam-cell" data-cam="right">
+            <div class="multicam-tag">CAMERA PHẢI (SIDE RIGHT)</div>
+            <canvas id="multiCamRight" class="multicam-canvas" width="640" height="360"></canvas>
+          </div>
+          <div class="multicam-cell" data-cam="rear">
+            <div class="multicam-tag">CAMERA SAU (REAR)</div>
+            <canvas id="multiCamRear" class="multicam-canvas" width="640" height="360"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 3: DIAGNOSTICS & HARDWARE READINESS -->
+      <!-- ================================================================= -->
+      <section id="viewDiagnostics" class="cockpit-tab-view">
+        <div class="diagnostics-layout">
+          <!-- 5 Hardware Readiness Cards -->
+          <div class="diag-header-row">
+            <div>
+              <h2 class="diag-section-title">Hardware Readiness & Diagnostics</h2>
+              <span class="diag-section-sub">Kiểm tra tính sẵn sàng của thiết bị trước khi khởi động vận hành Live</span>
+            </div>
+            <div class="diag-actions">
+              <button id="recheckBtn" class="btn-primary" aria-label="Kiểm tra lại phần cứng">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span class="btn-text">Kiểm tra lại</span>
+              </button>
+            </div>
+          </div>
+
+          <div id="readinessGrid" class="readiness-grid">
+            <!-- 5 Cards injected by app.js -->
+          </div>
+
+          <!-- Detailed Issue List / Ready Banner -->
+          <div class="diag-details-panel">
+            <h3 id="issuesHeading" class="panel-subtitle">Chi Tiết Kiểm Tra Preflight</h3>
+            <div id="issuesList" class="issues-container">
+              <!-- Injected by app.js -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB: HARDWARE ASSIGNMENT (camera position, COM, LiDAR) -->
+      <!-- ================================================================= -->
+      <section id="viewHardware" class="cockpit-tab-view">
+        <div class="hw-layout">
+          <div class="diag-header-row">
+            <div>
+              <h2 class="diag-section-title">Cấu hình phần cứng</h2>
+              <span class="diag-section-sub">Gán camera theo vị trí trên xe, chọn cổng COM/UART Radar Gateway và nguồn LiDAR</span>
+            </div>
+            <div class="hw-actions">
+              <button id="hwScanBtn" class="btn-secondary" type="button">Quét thiết bị</button>
+              <button id="hwSaveBtn" class="btn-primary" type="button">Lưu cấu hình</button>
+            </div>
+          </div>
+          <div id="hwNotice" class="config-notice">Thay đổi chỉ có hiệu lực sau khi khởi động lại ADAS Live. Tab Module cảm biến là schema cũ.</div>
+          <div class="hw-body">
+            <div class="hw-map-card">
+              <div class="hw-map-title">SƠ ĐỒ XE · GÁN CAMERA</div>
+              <div id="hwVehicle" class="hw-vehicle" aria-label="Sơ đồ vị trí camera trên xe"></div>
+              <div class="hw-map-legend">
+                <span class="hw-legend assigned">Đã gán</span>
+                <span class="hw-legend empty">Chưa gán</span>
+                <span class="hw-legend selected">Đang chọn</span>
+              </div>
+            </div>
+            <div class="hw-forms">
+              <div class="hw-section">
+                <h3 class="hw-section-title">Camera theo vị trí</h3>
+                <div class="hw-cam-global">
+                  <label class="hw-field">
+                    <span>BẬT CAMERA</span>
+                    <label class="radar-toggle">
+                      <input id="hwCamEnabled" type="checkbox" checked />
+                      <span>Kích hoạt camera</span>
+                    </label>
+                  </label>
+                  <label class="hw-field">
+                    <span>RỘNG</span>
+                    <input id="hwCamWidth" type="number" min="1" value="1280" />
+                  </label>
+                  <label class="hw-field">
+                    <span>CAO</span>
+                    <input id="hwCamHeight" type="number" min="1" value="720" />
+                  </label>
+                  <label class="hw-field">
+                    <span>FPS</span>
+                    <input id="hwCamFps" type="number" min="1" value="30" />
+                  </label>
+                </div>
+                <div id="hwCameraSlots" class="hw-slot-grid"></div>
+              </div>
+              <div class="hw-section">
+                <h3 class="hw-section-title">Cổng COM / UART — Radar Gateway</h3>
+                <div class="hw-serial-grid">
+                  <label class="hw-field wide">
+                    <span>BẬT GATEWAY</span>
+                    <label class="radar-toggle">
+                      <input id="hwRadarEnabled" type="checkbox" />
+                      <span>Kích hoạt Radar Gateway</span>
+                    </label>
+                  </label>
+                  <label class="hw-field wide">
+                    <span>CỔNG (COM / /dev/tty* / by-id)</span>
+                    <div class="radar-device-input">
+                      <select id="hwRadarDeviceSelect"></select>
+                      <input id="hwRadarDevice" type="text" placeholder="COM3 hoặc /dev/serial/by-id/..." />
+                    </div>
+                  </label>
+                  <label class="hw-field">
+                    <span>BAUDRATE</span>
+                    <select id="hwRadarBaud"></select>
+                  </label>
+                  <div class="hw-field">
+                    <span>KIỂM TRA</span>
+                    <div class="module-actions">
+                      <button id="hwRadarTestBtn" class="btn-secondary" type="button">Kiểm tra cổng</button>
+                      <span id="hwRadarTestResult" class="module-test-result"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="hw-section">
+                <h3 class="hw-section-title">LiDAR</h3>
+                <div class="hw-serial-grid">
+                  <label class="hw-field wide">
+                    <span>BẬT LIDAR</span>
+                    <label class="radar-toggle">
+                      <input id="hwLidarEnabled" type="checkbox" checked />
+                      <span>Kích hoạt LiDAR</span>
+                    </label>
+                  </label>
+                  <label class="hw-field">
+                    <span>DRIVER</span>
+                    <input id="hwLidarDriver" type="text" placeholder="real / playback / mock" />
+                  </label>
+                  <label class="hw-field">
+                    <span>SOURCE / COM</span>
+                    <div class="radar-device-input">
+                      <select id="hwLidarSourceSelect"></select>
+                      <input id="hwLidarSource" type="text" placeholder="COM5, /dev/ttyUSB0, mock" />
+                    </div>
+                  </label>
+                  <label class="hw-field">
+                    <span>FPS</span>
+                    <input id="hwLidarFps" type="number" min="1" value="10" />
+                  </label>
+                  <label class="hw-field">
+                    <span>DRIVER MODULE</span>
+                    <input id="hwLidarModule" type="text" placeholder="drivers.real_lidar" />
+                  </label>
+                  <div class="hw-field wide">
+                    <span>KIỂM TRA</span>
+                    <div class="module-actions">
+                      <button id="hwLidarTestBtn" class="btn-secondary" type="button">Kiểm tra nguồn</button>
+                      <span id="hwLidarTestResult" class="module-test-result"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="viewConfig" class="cockpit-tab-view">
+        <div class="module-config-layout">
+          <div class="diag-header-row">
+            <div>
+              <h2 class="diag-section-title">Cấu hình module cảm biến hai bên hông</h2>
+              <span class="diag-section-sub">Tối đa 2 module mỗi bên · mỗi module gồm 1 camera và 1 radar ESP32 UART</span>
+            </div>
+            <button id="saveModulesBtn" class="btn-primary">Lưu cấu hình</button>
+          </div>
+          <div id="configNotice" class="config-notice">Thay đổi thiết bị chỉ có hiệu lực sau khi khởi động lại ADAS Live.</div>
+          <div class="module-columns">
+            <div class="module-side-column">
+              <h3 class="module-side-title">BÊN TRÁI</h3>
+              <div id="leftModules" class="module-card-list"></div>
+            </div>
+            <div class="module-side-column">
+              <h3 class="module-side-title">BÊN PHẢI</h3>
+              <div id="rightModules" class="module-card-list"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- TAB 5: RADAR GATEWAY (Prompt 4: single Gateway / four LD2410C) -->
+      <!-- ================================================================= -->
+      <section id="viewRadar" class="cockpit-tab-view">
+        <div class="radar-layout">
+          <div class="diag-header-row">
+            <div>
+              <h2 class="diag-section-title">Radar Gateway — ESP32 A + 4× HLK-LD2410C</h2>
+              <span class="diag-section-sub">Một cổng USB Serial mang dữ liệu của 4 radar · giao thức JSON v2 · tầm phát hiện ≤ 5 m</span>
+            </div>
+            <div class="radar-actions">
+              <button id="radarTestBtn" class="btn-secondary">Kiểm tra Gateway</button>
+              <button id="saveRadarBtn" class="btn-primary">Lưu cấu hình</button>
+            </div>
+          </div>
+
+          <div id="radarRestartBanner" class="config-notice restart-banner" hidden>
+            <strong>Khởi động lại bắt buộc</strong>
+            <span>Cấu hình Radar Gateway đã thay đổi — cần khởi động lại ADAS Live để áp dụng.</span>
+          </div>
+
+          <!-- Top: Gateway enable + device + baudrate + protocol -->
+          <div class="radar-top-grid">
+            <div class="radar-card">
+              <h3 class="radar-card-title">Gateway Serial</h3>
+              <div class="radar-form-grid">
+                <label class="radar-field wide">
+                  <span>BẬT GATEWAY</span>
+                  <label class="radar-toggle">
+                    <input id="radarEnabled" type="checkbox" />
+                    <span>Kích hoạt Radar Gateway</span>
+                  </label>
+                </label>
+                <label class="radar-field wide">
+                  <span>DEVICE (cổng USB Serial)</span>
+                  <div class="radar-device-input">
+                    <select id="radarDeviceSelect"></select>
+                    <input id="radarDevice" type="text" placeholder="/dev/serial/by-id/..." />
+                    <button id="radarRescanBtn" class="btn-icon" title="Quét lại thiết bị">↻</button>
+                  </div>
+                  <span class="radar-hint">Chỉ chấp nhận đường dẫn thuộc allowlist <code>/dev/serial/by-id</code>, <code>/dev/ttyACM*</code>, <code>/dev/ttyUSB*</code>.</span>
+                </label>
+                <label class="radar-field">
+                  <span>BAUDRATE</span>
+                  <select id="radarBaudrate"></select>
+                </label>
+                <label class="radar-field">
+                  <span>PROTOCOL VERSION</span>
+                  <select id="radarProtocol">
+                    <option value="2">v2 (JSON Gateway)</option>
+                  </select>
+                </label>
+                <label class="radar-field">
+                  <span>STALE TIMEOUT (s)</span>
+                  <input id="radarStale" type="number" step="0.1" min="0.1" />
+                </label>
+                <label class="radar-field">
+                  <span>CAMERA HOLD (s)</span>
+                  <input id="radarHold" type="number" step="0.1" min="0" max="10" />
+                </label>
+              </div>
+            </div>
+
+            <!-- Live Telemetry Panel -->
+            <div class="radar-card radar-telemetry-card">
+              <h3 class="radar-card-title">Trạng thái Gateway</h3>
+              <div class="radar-telemetry-grid">
+                <div class="radar-telem">
+                  <span class="radar-telem-label">GATEWAY</span>
+                  <span id="radarGatewayBadge" class="radar-badge offline">OFFLINE</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">REMOTE</span>
+                  <span id="radarRemoteBadge" class="radar-badge offline">OFFLINE</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">BOOT ID (GW)</span>
+                  <span id="radarGatewayBootId" class="radar-mono">--</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">BOOT ID (RM)</span>
+                  <span id="radarRemoteBootId" class="radar-mono">--</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">SEQUENCE</span>
+                  <span id="radarLastSeq" class="radar-mono">--</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">PACKET RATE</span>
+                  <span id="radarRateHz" class="radar-mono">0.0 Hz</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">PACKET LOSS</span>
+                  <span id="radarLoss" class="radar-mono">0.0%</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">JSON / CRC ERR</span>
+                  <span id="radarErrors" class="radar-mono">0 / 0</span>
+                </div>
+                <div class="radar-telem">
+                  <span class="radar-telem-label">PACKET AGE</span>
+                  <span id="radarAge" class="radar-mono">--</span>
+                </div>
+                <div class="radar-telem wide">
+                  <span class="radar-telem-label">GHI CHÚ</span>
+                  <span id="radarNote" class="radar-note">Đang đợi dữ liệu radar…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Per-radar grid -->
+          <div class="radar-grid" id="radarRadars"></div>
+
+          <!-- Test result -->
+          <div id="radarTestResult" class="radar-test-result" hidden></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Cockpit Footer -->
+    <footer class="cockpit-footer">
+      <div id="footerText">ADAS PRO // PRODUCTION NOIR COCKPIT · TỰ ĐỘNG CHẨN ĐOÁN VÀ BẢO VỆ AN TOÀN</div>
+      <div class="footer-meta">JETSON DEPLOYMENT · ZERO ROS DEPENDENCY</div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

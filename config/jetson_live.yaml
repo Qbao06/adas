@@ -1,0 +1,165 @@
+mode: live
+
+runtime:
+  async_sensors: true
+  no_data_timeout_seconds: 3.0
+  sensor_timeout_seconds: 2.0
+  sync_timeout_seconds: 2.0
+
+web_dashboard:
+  enabled: true
+  snapshot_hz: 10.0
+  jpeg_quality: 75
+
+camera:
+  enabled: true
+  source: 0
+  # Nên đổi sang /dev/v4l/by-id/... sau khi cắm camera để thứ tự không đổi.
+  sources:
+    front: /dev/video0
+    left_1: /dev/video1
+    left_2: /dev/video3
+    right_1: /dev/video2
+    right_2: /dev/video4
+  width: 1280
+  height: 720
+  fps: 30
+  reconnect_seconds: 2.0
+
+# Schema radar mới: một ESP32 A Gateway duy nhất, JSON protocol v2, đọc bốn
+# radar HLK-LD2410C (UART radar 256000; USB Serial tới Jetson 115200).
+# Đổi `device` sang /dev/serial/by-id/... sau khi cắm. Không dùng firmware LD2420.
+radar_gateway:
+  enabled: true
+  device: /dev/serial/by-id/CHANGE_ME
+  baudrate: 115200
+  protocol_version: 2
+  stale_after_seconds: 0.6
+  reconnect_seconds: 2.0
+  camera_hold_seconds: 1.2
+  max_line_bytes: 4096
+  priority:
+    - left_front
+    - left_rear
+    - right_front
+    - right_rear
+  radars:
+    left_front:
+      enabled: true
+      camera: left_1
+      warning_distance_m: 5.0
+    left_rear:
+      enabled: true
+      camera: left_2
+      warning_distance_m: 5.0
+    right_front:
+      enabled: true
+      camera: right_1
+      warning_distance_m: 5.0
+    right_rear:
+      enabled: true
+      camera: right_2
+      warning_distance_m: 5.0
+
+# Cấu hình cũ được giữ để tương thích ngược. Khi radar_gateway.enabled=true
+# thì side_sensor_modules không được dùng ở runtime; nếu bạn vẫn cần chạy
+# schema cũ, hãy tắt radar_gateway và bật side_sensor_modules.enabled.
+side_radar:
+  enabled: false
+  device: /dev/ttyACM0
+  baudrate: 115200
+  stale_after_seconds: 0.6
+  camera_hold_seconds: 1.2
+  max_distance_m: 30.0
+
+side_sensor_modules:
+  enabled: false
+  max_modules_per_side: 2
+  camera_hold_seconds: 1.2
+  modules:
+    left_1:
+      enabled: true
+      side: left
+      position: front
+      camera: {device: /dev/video1, width: 1280, height: 720, fps: 30}
+      radar: {enabled: true, device: /dev/ttyACM0, baudrate: 115200, stale_after_seconds: 0.6, max_distance_m: 30.0, warning_distance_m: 5.0}
+    left_2:
+      enabled: true
+      side: left
+      position: rear
+      camera: {device: /dev/video3, width: 1280, height: 720, fps: 30}
+      radar: {enabled: true, device: /dev/ttyACM2, baudrate: 115200, stale_after_seconds: 0.6, max_distance_m: 30.0, warning_distance_m: 5.0}
+    right_1:
+      enabled: true
+      side: right
+      position: front
+      camera: {device: /dev/video2, width: 1280, height: 720, fps: 30}
+      radar: {enabled: true, device: /dev/ttyACM1, baudrate: 115200, stale_after_seconds: 0.6, max_distance_m: 30.0, warning_distance_m: 5.0}
+    right_2:
+      enabled: true
+      side: right
+      position: rear
+      camera: {device: /dev/video4, width: 1280, height: 720, fps: 30}
+      radar: {enabled: true, device: /dev/ttyACM3, baudrate: 115200, stale_after_seconds: 0.6, max_distance_m: 30.0, warning_distance_m: 5.0}
+
+lidar:
+  enabled: true
+  source: CHANGE_ME
+  driver: CHANGE_ME
+  driver_module: drivers.real_lidar
+  fps: 10
+
+vision:
+  model: models/best.engine
+  validate_model_on_startup: true
+  confidence: 0.45
+  device: cuda
+  image_size: 640
+  allowed_classes: [person, bicycle, motorcycle, car, bus, truck]
+  tracker_iou_threshold: 0.3
+  tracker_max_age: 15
+  tracker_min_hits: 3
+
+calibration:
+  file: config/calibration_live.yaml
+
+lidar_processing:
+  min_range_m: 0.3
+  max_range_m: 60.0
+  roi: {x_min: 0.0, x_max: 60.0, y_min: -12.0, y_max: 12.0, z_min: -3.0, z_max: 4.0}
+  clustering: {eps: 0.7, min_samples: 4}
+
+synchronization:
+  max_difference_ms: 50.0
+  buffer_size: 30
+  stale_after_ms: 500.0
+
+fusion:
+  use_clusters: true
+  fallback_to_filtered_points: false
+  min_points: 3
+  bbox_scale: 0.85
+  distance_mode: adaptive
+  ema_alpha: 0.35
+  track_stale_seconds: 1.5
+  track_max_hold: 5
+
+warning:
+  mode: distance
+  lane_half_width_m: 1.75
+  caution_distance_m: 12.0
+  danger_distance_m: 6.0
+  emergency_distance_m: 3.0
+  hysteresis_distance_m: 0.5
+
+visualization:
+  enabled: true
+  show_lidar_points: true
+  record_path: ""
+  video_fps: 30.0
+
+safety:
+  production_only: true
+  allow_mock: false
+  is_demo_calibration: true  # đổi false chỉ sau khi calibration thật đã được kiểm chứng
+  heartbeat_timeout: 1.0

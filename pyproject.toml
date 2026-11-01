@@ -1,0 +1,70 @@
+[project]
+name = "adas-lidar-camera"
+version = "1.0.0"
+description = "AD-assistance camera + LiDAR pipeline (no ROS, runnable in 1 click)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ADAS Prototype" }]
+keywords = ["adas", "lidar", "camera", "perception", "fusion"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Scientific/Engineering :: Image Processing",
+]
+
+dependencies = [
+    "numpy>=1.24,<3.0",
+    "opencv-python>=4.8,<5.0",
+    "PyYAML>=6.0",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "ultralytics>=8.2",
+]
+
+[project.optional-dependencies]
+tracking = ["filterpy>=1.4"]
+dev = ["pytest>=7.4", "pytest-cov>=4.1"]
+
+[project.scripts]
+adas = "run:main"
+
+[tool.setuptools]
+py-modules = ["run", "preflight", "web_dashboard"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+    "app*",
+    "adas*",
+    "calibration*",
+    "config*",
+    "core*",
+    "fusion*",
+    "dashboard*",
+    "drivers*",
+    "lidar*",
+    "sensors*",
+    "synchronization*",
+    "system*",
+    "tools*",
+    "vision*",
+    "visualization*",
+]
+
+[tool.setuptools.package-data]
+config = ["*.yaml"]
+drivers = ["README.md"]
+dashboard = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra -q"
+filterwarnings = ["ignore::DeprecationWarning"]
+python_files = ["test_*.py"]

@@ -1,0 +1,71 @@
+mode: demo
+
+camera:
+  source: mock
+  width: 1280
+  height: 720
+  fps: 30
+  reconnect_seconds: 2.0
+
+lidar:
+  source: mock
+  driver: mock
+  playback_path: ""
+  fps: 10
+  mock_objects:
+    - [12.0, 0.0, 0.0]
+
+vision:
+  model: yolov8n.pt
+  confidence: 0.45
+  device: auto
+  allowed_classes: [person, bicycle, motorcycle, car, bus, truck]
+  tracker_iou_threshold: 0.3
+  tracker_max_age: 15
+  tracker_min_hits: 3
+
+lidar_processing:
+  min_range_m: 0.3
+  max_range_m: 60.0
+  roi: {x_min: 0.0, x_max: 60.0, y_min: -12.0, y_max: 12.0, z_min: -3.0, z_max: 4.0}
+  clustering: {eps: 0.7, min_samples: 4}
+
+synchronization:
+  max_difference_ms: 120.0
+  buffer_size: 20
+  stale_after_ms: 1000.0
+
+calibration:
+  file: config/calibration.yaml
+
+fusion:
+  use_clusters: false
+  fallback_to_filtered_points: true
+  min_points: 3
+  bbox_scale: 0.85
+  distance_mode: adaptive
+  ema_alpha: 0.35
+  track_stale_seconds: 1.5
+  track_max_hold_frames: 10
+
+warning:
+  mode: distance
+  lane_half_width_m: 1.75
+  caution_distance_m: 12.0
+  danger_distance_m: 6.0
+  emergency_distance_m: 3.0
+  hysteresis_distance_m: 0.5
+
+health:
+  timeout_seconds: 1.0
+
+visualization:
+  enabled: true
+  show_lidar_points: true
+  record_path: ""
+  video_fps: 30.0
+
+safety:
+  allow_mock: true
+  is_demo_calibration: true
+  heartbeat_timeout: 1.0

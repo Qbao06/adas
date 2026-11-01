@@ -1,0 +1,18 @@
+# LIVE EXTRINSIC CALIBRATION — thay toàn bộ số dưới bằng kết quả calibrate thật.
+# Quy trình: chụp 20+ ảnh bàn cờ 9x6 ở 1280x720, chạy OpenCV calibrateCamera
+# cho K/D, rồi solvePnP LiDAR-camera cho R/t. Không chạy live khi còn số demo.
+calibrated_date: CHANGE_ME # vd: 2026-06-01
+image_width: 1280
+image_height: 720
+reprojection_error_px: CHANGE_ME # yêu cầu < 0.5 px
+camera_matrix:
+  - [CHANGE_ME, 0.0, CHANGE_ME]
+  - [0.0, CHANGE_ME, CHANGE_ME]
+  - [0.0, 0.0, 1.0]
+distortion: [CHANGE_ME, CHANGE_ME, 0.0, 0.0, 0.0]
+rotation:
+  - [CHANGE_ME, CHANGE_ME, CHANGE_ME]
+  - [CHANGE_ME, CHANGE_ME, CHANGE_ME]
+  - [CHANGE_ME, CHANGE_ME, CHANGE_ME]
+translation: [CHANGE_ME, CHANGE_ME, CHANGE_ME]
+notes: Thay CHANGE_ME bằng số đo thật rồi đặt safety.is_demo_calibration=false.

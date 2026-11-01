@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+
+# Logs and outputs
+logs/
+output/*.mp4
+output/*.png
+output/*.jpg
+
+# Data and model checkpoints (kept directories, ignored large files)
+data/*.npy
+data/*.npz
+data/*.csv
+data/*.bag
+data/*.pcd
+data/*.ply
+models/*.pt
+models/*.onnx
+models/*.engine
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tests
+.pytest_cache/
+.arduino-cli-cache/
+.coverage
+htmlcov/
+.tox/
+.cache/

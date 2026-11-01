@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ADAS Live
+Comment=Start ADAS hardware-only pipeline (demo disabled)
+Exec=@PROJECT_DIR@/start_jetson.sh
+Terminal=true
+StartupNotify=true
+Categories=Utility;
